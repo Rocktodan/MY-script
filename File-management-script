@@ -1,0 +1,32 @@
+ #!/bin/bash
+ 
+ current_date=$(date +%Y-%m-%d)
+ search_dir="$HOME"
+ backup_dir="$HOME/backup"
+ backup_name="backup_${current_date}.tar.gz"
+ backup_path="${HOME}/${backup_name}"
+ 
+ # Create backup directory 
+ if [ ! -d "$backup_dir" ]; then
+   mkdir -p "$backup_dir"
+ else
+   echo "Directory $backup_dir already exists."
+ fi
+ 
+ # Find files not accessed in the past 1 day, excluding hidden directories
+ files=$(find /home -type f -atime -1 ! -name "*.sh" ! -path '*/.*')
+ 
+ # Move files to backup directory
+ for file in $files; do
+   mv "${file}" "${backup_dir}"
+ done
+ 
+ # Compress backup files in the backup directory
+ tar -czvf "$backup_path" -C "$HOME" "backup" >> /dev/null
+ if [ $? -eq 0 ]; then
+   rm -rf "$backup_dir"
+   echo "Backup successfully created at $backup_path"
+ else
+   echo "Compression wasn't successful" >&2
+   exit 1
+ fi
